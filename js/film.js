@@ -78,4 +78,8 @@ function endFilm(){
   f.done();
 }
 $('filmSkip').onclick=()=>{ if (FILM) endFilm(); };
+// a tap or click anywhere on the film moves to the next shot (the last shot ends it); the Skip button still ends it at once
+function filmNext(){ const f=FILM; if (!f) return; if (f.scenes[f.n].last){ endFilm(); return; }
+  f.tAll=f.scenes.slice(0,f.n+1).reduce((a,s)=>a+s.dur,0); f.prev=f.cur||f.prev; filmScene(f.n+1); }
+$('film').addEventListener('click', e=>{ if (FILM && e.target.id!=='filmSkip') filmNext(); });
 window.addEventListener('keydown', e=>{ if (FILM && (e.key==='Escape' || e.key==='Enter' || e.key===' ')){ e.preventDefault(); endFilm(); } }, true);

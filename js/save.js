@@ -57,6 +57,8 @@ function showMenu(){
   mk('Haptics', 'haptics', v=>{ SET.haptics=v; saveSettings(); haptic(); });
   { const b=document.createElement('button'); b.className='tg'; b.innerHTML=`Theme <b>${SET.theme}</b>`; b.onclick=()=>{ SET.theme={auto:'dark',dark:'light',light:'auto'}[SET.theme]||'auto'; saveSettings(); applyTheme(); showMenu(); }; tg.appendChild(b); }
   { const b=document.createElement('button'); b.className='tg'; b.innerHTML=`Layout <b>${isDesk()?'desktop':'phone'}</b>`; b.onclick=()=>setMode(isDesk()?'phone':'desktop'); tg.appendChild(b); }
+  { const b=document.createElement('button'); b.className='tg'; b.innerHTML='Back up saves <b>file</b>'; b.onclick=backupSaves; tg.appendChild(b); }
+  { const b=document.createElement('button'); b.className='tg'; b.innerHTML='Restore saves <b>file</b>'; b.onclick=()=>{ const i=document.createElement('input'); i.type='file'; i.accept='application/json,.json'; i.onchange=()=>{ const f=i.files&&i.files[0]; if (f) f.text().then(restoreSaves).catch(()=>modal('<h2>Restore saves</h2><p>Could not read that file.</p><button class="btn pri" onclick="closeModal()">OK</button>')); }; i.click(); }; tg.appendChild(b); }
   mk('Touch debug', 'debug', v=>{ SET.debug=v; saveSettings(); requestRender(); });
   const standalone = window.navigator.standalone || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
   $('foot').innerHTML=(isDesk() ? `Drag to draw. Drag with Look, or right-drag with any tool, to move the map. Wheel zooms.<br>Keys: 1–9 tools · Space play · S speed · Z undo · Y redo · X remove · F fit · Esc look.<br>The game saves by itself.` : `One finger draws. Two fingers move and zoom the map. The game saves by itself.${standalone?'':'<br>For fullscreen: Share → Add to Home Screen.'}`)+`<br>Peil ${APP_VERSION}`;
@@ -136,3 +138,17 @@ function showLose(){
 // Random map: deal a validated map number, never the one just played, and start it.
 function rollRandom(){ const a=RANDOM_OK.length?RANDOM_OK:[1], cur=SCENARIOS.find(s=>s.id==='random').rnd; let n=a[Math.floor(Math.random()*a.length)]; if (a.length>1 && n===cur) n=a[(a.indexOf(n)+1)%a.length]; setRandom(n); startScenario('random',false); }
 function replay(){ if (G.sc.id==='random') rollRandom(); else startScenario(G.sc.id,false); }
+
+// Back up and restore: every peil_* key in localStorage, as one JSON file (an installed web app can lose its storage if the phone clears it)
+function backupSaves(){
+  const o={peil:1, saved:new Date().toISOString(), data:{}}; try { for (let k=0;k<localStorage.length;k++){ const key=localStorage.key(k); if (key.startsWith('peil_')) o.data[key]=localStorage.getItem(key); } } catch(e){}
+  const text=JSON.stringify(o), name='peil-backup-'+new Date().toISOString().slice(0,10)+'.json', file=new File([text], name, {type:'application/json'});
+  if (navigator.canShare && navigator.canShare({files:[file]})) navigator.share({files:[file], title:'Peil backup'}).catch(()=>{});
+  else { const a=document.createElement('a'); a.href=URL.createObjectURL(file); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000); }
+}
+function restoreSaves(text){
+  let o; try { o=JSON.parse(text); } catch(e){ o=null; }
+  if (!o || o.peil!==1 || !o.data || typeof o.data!=='object'){ modal('<h2>Restore saves</h2><p>That is not a Peil backup file.</p><button class="btn pri" onclick="closeModal()">OK</button>'); return; }
+  let n=0; for (const [k,v] of Object.entries(o.data)){ if (!/^peil_[a-z0-9_]+$/i.test(k) || typeof v!=='string') continue; try { JSON.parse(v); localStorage.setItem(k, v); n++; } catch(e){} }
+  showMenu(); modal('<h2>Restore saves</h2><p>'+n+' saved items restored.</p><button class="btn pri" onclick="closeModal()">OK</button>');
+}
