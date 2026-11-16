@@ -161,11 +161,11 @@ function render(now){
   // freight
   if (cs>=6){ freightSprites(sprites);
     for (const sp of sprites){ const px=X(sp[0]), py=Y(sp[1]); if (px<-cs||py<-cs||px>cw+cs||py>ch+cs) continue;
-      if (sp[2]===3 || sp[2]===4){ const horiz=Math.abs(sp[3]||0)>=Math.abs(sp[4]||0), w=cs*(horiz?.78:.36), h=cs*(horiz?.36:.78);
-        ctx.fillStyle='#2b3338'; ctx.fillRect(px-w/2-.8,py-h/2-.8,w+1.6,h+1.6); ctx.fillStyle='#6b5236'; ctx.fillRect(px-w/2,py-h/2,w,h); ctx.fillStyle='#e0bd55'; ctx.fillRect(px-w*.3,py-h*.28,w*.6,h*.56);
+      if (sp[2]===3 || sp[2]===4){ const w=cs*.78, h=cs*.36; ctx.save(); ctx.translate(px,py); ctx.rotate(sp[3]||sp[4] ? Math.atan2(sp[4]||0, sp[3]||0) : 0);   // boats turn to follow the water, diagonals included
+        ctx.fillStyle='#2b3338'; ctx.fillRect(-w/2-.8,-h/2-.8,w+1.6,h+1.6); ctx.fillStyle='#6b5236'; ctx.fillRect(-w/2,-h/2,w,h); ctx.fillStyle='#e0bd55'; ctx.fillRect(-w*.3,-h*.28,w*.6,h*.56); ctx.restore();
         if (sp[2]===4){ ctx.strokeStyle='#a8452f'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(px,py,cs*.62,0,7); ctx.stroke(); } }
-      else if (sp[2]===2){ const horiz=Math.abs(sp[3]||0)>=Math.abs(sp[4]||0), w=cs*(horiz?.8:.34), h=cs*(horiz?.34:.8);
-        ctx.fillStyle='rgba(255,255,255,.3)'; ctx.fillRect(px-w/2-1,py-h/2-1,w+2,h+2); ctx.fillStyle='#5b4733'; ctx.fillRect(px-w/2,py-h/2,w,h); ctx.fillStyle='#c9a13a'; ctx.fillRect(px-w*.22,py-h*.22,w*.44,h*.44); }
+      else if (sp[2]===2){ const w=cs*.8, h=cs*.34; ctx.save(); ctx.translate(px,py); ctx.rotate(sp[3]||sp[4] ? Math.atan2(sp[4]||0, sp[3]||0) : 0);
+        ctx.fillStyle='rgba(255,255,255,.3)'; ctx.fillRect(-w/2-1,-h/2-1,w+2,h+2); ctx.fillStyle='#5b4733'; ctx.fillRect(-w/2,-h/2,w,h); ctx.fillStyle='#c9a13a'; ctx.fillRect(-w*.22,-h*.22,w*.44,h*.44); ctx.restore(); }
       else { const w=cs*.36, h=cs*.26; ctx.fillStyle='#2b3338'; ctx.fillRect(px-w/2-.8,py-h/2-.8,w+1.6,h+1.6); ctx.fillStyle=sp[2]?'#55504a':'#d9b24a'; ctx.fillRect(px-w/2,py-h/2,w,h); } } }
   // breach rings
   if (g.fx){ g.fx=g.fx.filter(f=>g.tick-f.t<DAY*3); for (const f of g.fx){ const x=f.i%C, y=(f.i/C)|0, a=1-(g.tick-f.t)/(DAY*3); ctx.strokeStyle=`rgba(168,69,47,${a})`; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(X(x+.5),Y(y+.5), cs*(0.8+0.6*Math.sin(T*5.5)), 0, 7); ctx.stroke(); } }
