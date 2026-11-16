@@ -136,7 +136,7 @@ button:disabled{cursor:not-allowed}
 .modalopen #step{visibility:hidden}
 .intro .more summary{cursor:pointer;color:var(--warn);text-decoration:underline;text-underline-offset:3px;font-weight:600;font-size:var(--fs-3);min-height:44px;display:flex;align-items:center}
 .intro .more[open] summary{display:none}
-.logo{font:italic 400 64px/1 var(--serif);margin:10px 0 4px}   /* the name set in the game's type; a real logo waits for Jules (anti-slop R-23) */
+.logo{font:italic 400 64px/1 var(--serif);margin:10px 0 4px}   /* the name set in the game's type; a real logo is still to come */
 .sub{color:var(--muted);font-size:13px;margin-bottom:20px;text-align:center}
 .wave{width:120px;height:18px;margin-bottom:16px}
 .sc{width:100%;max-width:420px;min-height:64px;border:1px solid var(--line);background:var(--card);border-radius:var(--r-s);padding:var(--s3) var(--s4);margin-bottom:var(--s2);text-align:left;display:flex;gap:12px;align-items:center}
@@ -207,7 +207,7 @@ html.dark .ib.on:hover,html.dark .btn.pri:hover{background-color:#d9ccac}
 @media (max-width:359px),(max-height:620px){#title b{font-size:18px}#step .x{font-size:14.5px}.letter{font-size:14.5px}.tool{height:58px;width:56px}.tool svg{width:24px;height:24px}}
 /* short screens (a phone on its side): drop the gauge and tighten the bars so the map keeps some room */
 @media (max-height:520px){#gaugeBtn,#legend{display:none}#chips{display:none}.tool{height:48px}.tool .c{display:none}#step{min-height:44px;padding:5px 10px}}
-/* Motion (LottieFiles motion-design rules): one signature ease, entrances decelerate and are slower than exits, pulses are sine-shaped, a little stagger. */
+/* Motion: one signature ease, entrances decelerate and are slower than exits, pulses are sine-shaped, a little stagger. */
 :root{--ease:cubic-bezier(.2,0,0,1);--ease-in:cubic-bezier(.3,0,1,1)}
 .ib,.tool,.btn,.sc,.tg,#infoA button{transition:background-color .14s var(--ease),border-color .14s var(--ease),transform .14s var(--ease),opacity .2s var(--ease)}
 .modalwrap:not(.hide){animation:mwIn .24s var(--ease) both}
