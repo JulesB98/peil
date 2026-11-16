@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="1024" height="1024">
+ <defs><linearGradient id="sky" x1="1" y1="0" x2="0.2" y2="1"><stop offset="0" stop-color="#f3cf92"/><stop offset=".75" stop-color="#ece3cc"/></linearGradient></defs>
+ <rect width="100" height="100" fill="url(#sky)"/>
+ <circle cx="78" cy="24" r="10" fill="#f1b866" opacity=".9"/>
+ <!-- far meadow and a post mill on the dike -->
+ <path d="M0 62 H100 V100 H0Z" fill="#7d9a4a"/>
+ <path d="M0 62 H100" stroke="#26261f" stroke-width="1.4"/>
+ <path d="M17.5 63 L21 39 H29 L32.5 63 Z" fill="#6b5236" stroke="#26261f" stroke-width="1.5"/>
+ <path d="M18.6 55 H31.4 M19.7 47 H30.3" stroke="#26261f" stroke-width=".8" opacity=".6"/>
+ <rect x="23.4" y="57" width="3.2" height="6" fill="#26261f"/>
+ <path d="M20 39.5 Q25 31.5 30 39.5 Z" fill="#3a2f26" stroke="#26261f" stroke-width="1.4"/>
+ <path d="M28.98 38.29 L43.07 42.87 L41.65 47.25 L27.55 42.67 Z" fill="#f4ecd8" stroke="#26261f" stroke-width="1"/>
+ <path d="M32.23 39.35 l-1.42 4.37 M35.48 40.41 l-1.42 4.37 M38.73 41.46 l-1.42 4.37 " stroke="#26261f" stroke-width=".7"/>
+ <path d="M25.00 37.00 L43.07 42.87" stroke="#26261f" stroke-width="1.6"/>
+ <path d="M23.71 40.98 L19.13 55.07 L14.75 53.65 L19.33 39.55 Z" fill="#f4ecd8" stroke="#26261f" stroke-width="1"/>
+ <path d="M22.65 44.23 l-4.37 -1.42 M21.59 47.48 l-4.37 -1.42 M20.54 50.73 l-4.37 -1.42 " stroke="#26261f" stroke-width=".7"/>
+ <path d="M25.00 37.00 L19.13 55.07" stroke="#26261f" stroke-width="1.6"/>
+ <path d="M21.02 35.71 L6.93 31.13 L8.35 26.75 L22.45 31.33 Z" fill="#f4ecd8" stroke="#26261f" stroke-width="1"/>
+ <path d="M17.77 34.65 l1.42 -4.37 M14.52 33.59 l1.42 -4.37 M11.27 32.54 l1.42 -4.37 " stroke="#26261f" stroke-width=".7"/>
+ <path d="M25.00 37.00 L6.93 31.13" stroke="#26261f" stroke-width="1.6"/>
+ <path d="M26.29 33.02 L30.87 18.93 L35.25 20.35 L30.67 34.45 Z" fill="#f4ecd8" stroke="#26261f" stroke-width="1"/>
+ <path d="M27.35 29.77 l4.37 1.42 M28.41 26.52 l4.37 1.42 M29.46 23.27 l4.37 1.42 " stroke="#26261f" stroke-width=".7"/>
+ <path d="M25.00 37.00 L30.87 18.93" stroke="#26261f" stroke-width="1.6"/>
+ <circle cx="25" cy="37" r="1.7" fill="#26261f"/>
+ <!-- water with waterlijnen -->
+ <path d="M0 68 Q12 65 25 68 T50 68 T75 68 T100 68 V100 H0Z" fill="#7fa9b0"/>
+ <path d="M0 68 Q12 65 25 68 T50 68 T75 68 T100 68" fill="none" stroke="#26261f" stroke-width="2"/>
+ <path d="M0 78 Q12 75 25 78 T50 78 T75 78 T100 78" fill="none" stroke="#26261f" stroke-width="1.2" opacity=".55"/>
+ <path d="M0 88 Q12 85 25 88 T50 88 T75 88 T100 88" fill="none" stroke="#26261f" stroke-width=".9" opacity=".4"/>
+ <!-- the peilschaal standing in the water, the water line in molenrood -->
+ <rect x="55" y="14" width="24" height="78" fill="#fbf7ec" stroke="#26261f" stroke-width="2"/>
+ <rect x="55" y="14" width="5.5" height="78" fill="#26261f"/>
+ <g fill="#26261f"><rect x="55" y="21" width="24" height="4"/><rect x="55" y="31" width="15" height="4"/><rect x="55" y="41" width="24" height="4"/><rect x="55" y="51" width="15" height="4"/><rect x="55" y="75" width="15" height="4"/><rect x="55" y="85" width="24" height="4"/></g>
+ <rect x="50" y="65.5" width="34" height="5" fill="#a33a24"/>
+</svg>
