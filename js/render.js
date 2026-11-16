@@ -1,7 +1,7 @@
 "use strict";
 /* ===== RENDER =====
    Layers, bottom to top: cell colours (one pixel per cell, scaled up) → field texture, shorelines, ripples →
-   canals → dikes → roads → buildings → freight → pump arrows and warning marks → effects → build preview →
+   canals → dikes → roads → pump arrows → buildings → freight → warning marks → effects → build preview →
    tutorial focus → weather → loupe and touch debug.
    All drawing is in CSS pixels; the canvas buffer is cw*dpr by ch*dpr and always matches the stage box (see resize). */
 const cv=$('cv'), ctx=cv.getContext('2d'), stageEl=$('stage');
@@ -140,20 +140,7 @@ function render(now){
     ctx.textAlign='start'; ctx.textBaseline='alphabetic'; }
   drawRoads(x0,y0,x1,y1,X,Y,cs);
   if (viewMode===0) drawCows(x0,y0,x1,y1,X,Y,cs);
-  // buildings
-  for (let y=y0;y<y1;y++) for (let x=x0;x<x1;x++){ const i=y*C+x, s=g.struct[i]; if (s) drawStruct(s, i, X(x), Y(y), cs, T); }
-  // freight
-  if (cs>=6){ freightSprites(sprites);
-    for (const sp of sprites){ const px=X(sp[0]), py=Y(sp[1]); if (px<-cs||py<-cs||px>cw+cs||py>ch+cs) continue;
-      if (sp[2]===3 || sp[2]===4){ const horiz=Math.abs(sp[3]||0)>=Math.abs(sp[4]||0), w=cs*(horiz?.78:.36), h=cs*(horiz?.36:.78);
-        ctx.fillStyle='#2b3338'; ctx.fillRect(px-w/2-.8,py-h/2-.8,w+1.6,h+1.6); ctx.fillStyle='#6b5236'; ctx.fillRect(px-w/2,py-h/2,w,h); ctx.fillStyle='#e0bd55'; ctx.fillRect(px-w*.3,py-h*.28,w*.6,h*.56);
-        if (sp[2]===4){ ctx.strokeStyle='#a8452f'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(px,py,cs*.62,0,7); ctx.stroke(); } }
-      else if (sp[2]===2){ const horiz=Math.abs(sp[3]||0)>=Math.abs(sp[4]||0), w=cs*(horiz?.8:.34), h=cs*(horiz?.34:.8);
-        ctx.fillStyle='rgba(255,255,255,.3)'; ctx.fillRect(px-w/2-1,py-h/2-1,w+2,h+2); ctx.fillStyle='#5b4733'; ctx.fillRect(px-w/2,py-h/2,w,h); ctx.fillStyle='#c9a13a'; ctx.fillRect(px-w*.22,py-h*.22,w*.44,h*.44); }
-      else { const w=cs*.36, h=cs*.26; ctx.fillStyle='#2b3338'; ctx.fillRect(px-w/2-.8,py-h/2-.8,w+1.6,h+1.6); ctx.fillStyle=sp[2]?'#55504a':'#d9b24a'; ctx.fillRect(px-w/2,py-h/2,w,h); } } }
-  // breach rings
-  if (g.fx){ g.fx=g.fx.filter(f=>g.tick-f.t<DAY*3); for (const f of g.fx){ const x=f.i%C, y=(f.i/C)|0, a=1-(g.tick-f.t)/(DAY*3); ctx.strokeStyle=`rgba(168,69,47,${a})`; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(X(x+.5),Y(y+.5), cs*(0.8+0.6*Math.sin(T*5.5)), 0, 7); ctx.stroke(); } }
-  // pump arrows: colour and dash say what the pump is doing
+  // pump arrows sit between the dike and the building graphic (dike → arrow → building); colour and dash say what the pump is doing
   for (const p of g.pumps){ const a=g.pin[p], b=g.pout[p]; if (a<0||b<0) continue;
     const ax=a%C, ay=(a/C)|0, bx=b%C, by=(b/C)|0; if (bx<x0-1||bx>x1||by<y0-1||by>y1) continue;
     const st=g.pumpState[p], run=st===0 && g.pumpFlow[p]>0.001, col= st===0?'#225b78': st===2?'#a8452f': st===3?'#7d5f3a':'#7f8a90';
@@ -169,6 +156,19 @@ function render(now){
     const hx=ex-ux*cs*.05, hy=ey-uy*cs*.05, w=cs*.3;
     ctx.beginPath(); ctx.moveTo(hx,hy); ctx.lineTo(hx-ux*w-uy*w*.7, hy-uy*w+ux*w*.7); ctx.lineTo(hx-ux*w+uy*w*.7, hy-uy*w-ux*w*.7); ctx.closePath(); ctx.fill();
   }
+  // buildings
+  for (let y=y0;y<y1;y++) for (let x=x0;x<x1;x++){ const i=y*C+x, s=g.struct[i]; if (s) drawStruct(s, i, X(x), Y(y), cs, T); }
+  // freight
+  if (cs>=6){ freightSprites(sprites);
+    for (const sp of sprites){ const px=X(sp[0]), py=Y(sp[1]); if (px<-cs||py<-cs||px>cw+cs||py>ch+cs) continue;
+      if (sp[2]===3 || sp[2]===4){ const horiz=Math.abs(sp[3]||0)>=Math.abs(sp[4]||0), w=cs*(horiz?.78:.36), h=cs*(horiz?.36:.78);
+        ctx.fillStyle='#2b3338'; ctx.fillRect(px-w/2-.8,py-h/2-.8,w+1.6,h+1.6); ctx.fillStyle='#6b5236'; ctx.fillRect(px-w/2,py-h/2,w,h); ctx.fillStyle='#e0bd55'; ctx.fillRect(px-w*.3,py-h*.28,w*.6,h*.56);
+        if (sp[2]===4){ ctx.strokeStyle='#a8452f'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(px,py,cs*.62,0,7); ctx.stroke(); } }
+      else if (sp[2]===2){ const horiz=Math.abs(sp[3]||0)>=Math.abs(sp[4]||0), w=cs*(horiz?.8:.34), h=cs*(horiz?.34:.8);
+        ctx.fillStyle='rgba(255,255,255,.3)'; ctx.fillRect(px-w/2-1,py-h/2-1,w+2,h+2); ctx.fillStyle='#5b4733'; ctx.fillRect(px-w/2,py-h/2,w,h); ctx.fillStyle='#c9a13a'; ctx.fillRect(px-w*.22,py-h*.22,w*.44,h*.44); }
+      else { const w=cs*.36, h=cs*.26; ctx.fillStyle='#2b3338'; ctx.fillRect(px-w/2-.8,py-h/2-.8,w+1.6,h+1.6); ctx.fillStyle=sp[2]?'#55504a':'#d9b24a'; ctx.fillRect(px-w/2,py-h/2,w,h); } } }
+  // breach rings
+  if (g.fx){ g.fx=g.fx.filter(f=>g.tick-f.t<DAY*3); for (const f of g.fx){ const x=f.i%C, y=(f.i/C)|0, a=1-(g.tick-f.t)/(DAY*3); ctx.strokeStyle=`rgba(168,69,47,${a})`; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(X(x+.5),Y(y+.5), cs*(0.8+0.6*Math.sin(T*5.5)), 0, 7); ctx.stroke(); } }
   // warning marks, by shape as well as colour: ▲ lift too high, ✕ no link to town
   if (cs>=8 && g.net){ for (let y=y0;y<y1;y++) for (let x=x0;x<x1;x++){ const i=y*C+x, s=g.struct[i]; if (!s || s===S.TOWN || s===S.SLUICE || s===S.LOCK) continue;
       const pump=s<=3, st=pump?g.pumpState[i]:0; const kind = pump ? (st===2?1 : st===3?2 : 0) : (connected(i) || (s===S.FARM && shipLinked(i)) ?0:2); if (!kind) continue;
