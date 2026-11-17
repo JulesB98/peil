@@ -1,9 +1,9 @@
 // Peil service worker: offline play + automatic updates.
 // Bump VERSION on every release so phones pick up the new files.
-const VERSION = 'peil-v46';
+const VERSION = 'peil-v48';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest',
-  'js/config.js','js/scenarios.js','js/random.js','js/story.js','js/util.js','js/glossary.js','js/reveal.js','js/title.js','js/audio.js','js/world.js','js/sim.js','js/freight.js','js/build.js',
+  'js/config.js','js/scenarios.js','js/random.js', 'js/playtest.js','js/story.js','js/util.js','js/glossary.js','js/reveal.js','js/title.js','js/audio.js','js/world.js','js/sim.js','js/freight.js','js/build.js',
   'js/render.js','js/paint.js','js/ui.js','js/input.js','js/save.js','js/steps.js','js/film.js','js/main.js',
   'img/leren.jpg','img/kleine.jpg','img/veen.jpg','img/diep.jpg','img/groot.jpg','img/meer.jpg','img/afsluit.jpg','img/storm.jpg','img/delta.jpg',
   'icons/icon-192.png','icons/icon-512.png','icons/apple-touch-icon.png',

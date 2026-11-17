@@ -17,7 +17,7 @@ function lsDel(k){ try { localStorage.removeItem(k); } catch(e){} }
 const $ = (id) => document.getElementById(id);
 const REDUCED = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 // Player settings, kept apart from saves.
-const SET = Object.assign({sound:true, haptics:true, debug:false, mode:'', theme:'auto'}, lsGet('peil_settings') || {});   // mode: '' (not chosen yet), 'phone' or 'desktop'
+const SET = Object.assign({sound:true, haptics:true, debug:false, playtest:false, mode:'', theme:'auto'}, lsGet('peil_settings') || {});   // mode: '' (not chosen yet), 'phone' or 'desktop'
 if (/[?&]debug=1/.test(location.search)) SET.debug = true;
 function saveSettings(){ lsSet('peil_settings', SET); }
 

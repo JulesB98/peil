@@ -26,7 +26,7 @@ function randomScenario(n, diff){
   }
   sc.money=Math.round(sc.money*D.money[sc.kind]/50)*50; sc.goals.dry=D.dry; sc.goals.farms+=D.farms; sc.deadline=D.dl?D.dl[sc.kind]:0; sc.peil=D.peil?1:0; if (sc.peil) sc.goals.crop=D.crop; sc.diff=RANDOM_DIFFS.indexOf(D);
   return Object.assign(sc, { id:'random', name:'Random map #'+n, rnd:n, flip, seed:n*7+3, start:'1700-04-01', sign:'', epilogue:'Another lake, another polder. The water is patient. So are you.',
-    blurb:'Map #'+n+' · '+D.name+' · A new lake every time, always winnable.', steps:[], letters:[],
+    blurb:'Map #'+n+' · '+D.name+' · A new lake every time, always winnable.', steps:[], letters:sc.peil ? [{k:'peil1', when:g=>g.pumps.length>0, text:'Your pump holds the basin at a water level, its peil. Tap the pump and use Peil − / Peil +. Farms grow best 0.5 to 1.2 m above that level: too wet and they fail, too dry and the land sinks.'}] : [],
     intro:(ring ? 'A wide lake behind a ring of low land. Close it off, bring steam pumps and dig deep.' : 'A small lake and one strait to the boezem. Dam it, mill it, settle it.')+' Goal: drain '+Math.round(sc.goals.dry*100)+'% and settle '+sc.goals.farms+' farms'+(sc.peil?', crops at '+Math.round(sc.goals.crop*100)+'% (set each pump\'s peil so farms sit 0.5 to 1.2 m above the water)':'')+(sc.deadline?' within '+sc.deadline+' days.':'.') });
 }
 // Map numbers the solver has won (filled in by tests/random.test.js --record). A player's map is the Nth entry.
