@@ -105,6 +105,10 @@ button:disabled{cursor:not-allowed}
 .tool{position:relative;flex:0 0 auto;width:60px;height:66px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:var(--fs-2);font-weight:500;padding:0}
 .tool svg{width:28px;height:28px}
 .tool.on{border-color:var(--ink);box-shadow:inset 0 -3px 0 var(--warn)}
+.tool[data-t=look]{position:sticky;left:2px;z-index:3;margin-right:var(--s1);box-shadow:8px 0 8px -2px var(--card)}   /* Look stays put while the other tools scroll under it */
+.tool[data-t=look].on{box-shadow:inset 0 -3px 0 var(--warn),8px 0 8px -2px var(--card)}
+.desk .tool[data-t=look]{position:relative;left:auto;box-shadow:none}
+.desk .tool[data-t=look].on{box-shadow:inset 0 -3px 0 var(--warn)}
 .tool.grp{margin-left:var(--s3)}
 .tool.grp::before{content:"";position:absolute;left:-10px;top:10px;bottom:10px;width:1px;background:var(--rule)}
 .tool .c{color:var(--muted);font-size:var(--fs-1);font-variant-numeric:tabular-nums}
