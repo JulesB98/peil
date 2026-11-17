@@ -64,6 +64,7 @@ function updateHud(){
   if (g.sc.tutorial && g.m){ const p=Math.round(g.m.dry*100); chips.push(`<span class="chip ${g.m.dry>=0.9?'done':''}">Goal: lake dry ${p}% / 90%<span class="bar"><i style="width:${clamp(g.m.dry/0.9,0,1)*100}%"></i></span></span>`); }
   if (g.sc.sandbox){ chips.push(`<span class="chip">Dry ${Math.round(g.m.dry*100)}%</span>`); const ns=nextStormText(); if (ns) chips.push(`<span class="chip">Storm ${ns}</span>`); }
   const bz=g.boezem; if (bz>0.1) chips.push(`<span class="chip bad">▲ Boezem ${fmtM1(bz)} m</span>`);
+  if (g.sc.deadline){ const left=Math.max(0, Math.ceil(g.sc.deadline-g.tick/DAY)); chips.push(`<span class="chip ${left<=Math.round(g.sc.deadline*0.2)?'bad':''}">${left} days left</span>`); }
   if (g.sc.storms.length && g.m) chips.push(`<span class="chip ${g.m.seaMin<4?'bad':''}">Sea dike ${fmtM1(g.m.seaMin)} m</span>`);
   chips.push(`<span class="chip">Wind ${g.wind>=0.97?'storm':Math.round((g.wind||0)*100)+'%'}</span>`);
   if (g.pop) chips.push(`<span class="chip ${g.pop>g.food?'bad':''}">People ${g.pop} · food for ${g.food}</span>`);

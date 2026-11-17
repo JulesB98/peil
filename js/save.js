@@ -6,7 +6,7 @@
    mapV: the map layouts. Saves from older layouts (mapV missing or lower) no longer fit the map and are ignored.
    load() upgrades older saves in memory; the next save() writes them back as the current version. */
 function save(){
-  if (!G) return; const o={v:SAVE_V, mapV:MAP_V, sc:G.sc.id}; if (G.sc.rnd) o.rseed=G.sc.rnd;
+  if (!G) return; const o={v:SAVE_V, mapV:MAP_V, sc:G.sc.id}; if (G.sc.rnd){ o.rseed=G.sc.rnd; o.rdiff=G.sc.diff||0; }
   for (const k of ARR_KEYS) o[k]=Array.from(G[k], v=>Math.round(v*10000)/10000);
   for (const k of ['tick','money','boezem','stats','done','stormFlags','won','lost','stormsPassed','houses0','townIdx','log','flags','step','unread','V0']) o[k]=G[k];
   o.carts=G.carts.map(c=>[c.i, Math.round(c.v*100)/100, Math.round(c.p*100)/100]);
@@ -15,7 +15,7 @@ function save(){
   lsSet('peil_last', G.sc.id);
 }
 function load(id){
-  const o=lsGet('peil_save_'+id); if (id==='random' && o && o.rseed) setRandom(o.rseed); const sc=SCENARIOS.find(s=>s.id===id); if (!o || !sc) return null;
+  const o=lsGet('peil_save_'+id); if (id==='random' && o && o.rseed) setRandom(o.rseed, o.rdiff||0); const sc=SCENARIOS.find(s=>s.id===id); if (!o || !sc) return null;
   if ((o.v||1)>SAVE_V) return null;                      // written by a newer version of the game
   if ((o.mapV||1)!==MAP_V) return null;                  // made on an older map layout
   const g=newGame(sc);
@@ -59,6 +59,7 @@ function showMenu(){
   { const b=document.createElement('button'); b.className='tg'; b.innerHTML=`Layout <b>${isDesk()?'desktop':'phone'}</b>`; b.onclick=()=>setMode(isDesk()?'phone':'desktop'); tg.appendChild(b); }
   { const b=document.createElement('button'); b.className='tg'; b.innerHTML='Back up saves <b>file</b>'; b.onclick=backupSaves; tg.appendChild(b); }
   { const b=document.createElement('button'); b.className='tg'; b.innerHTML='Restore saves <b>file</b>'; b.onclick=()=>{ const i=document.createElement('input'); i.type='file'; i.accept='application/json,.json'; i.onchange=()=>{ const f=i.files&&i.files[0]; if (f) f.text().then(restoreSaves).catch(()=>modal('<h2>Restore saves</h2><p>Could not read that file.</p><button class="btn pri" onclick="closeModal()">OK</button>')); }; i.click(); }; tg.appendChild(b); }
+  { const b=document.createElement('button'); b.className='tg'; b.innerHTML=`Random map difficulty <b>${RANDOM_DIFFS[RANDOM_DIFF].name}</b>`; b.onclick=()=>{ RANDOM_DIFF=(RANDOM_DIFF+1)%RANDOM_DIFFS.length; lsSet('peil_rdiff', RANDOM_DIFF); showMenu(); }; tg.appendChild(b); }
   mk('Touch debug', 'debug', v=>{ SET.debug=v; saveSettings(); requestRender(); });
   const standalone = window.navigator.standalone || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
   $('foot').innerHTML=(isDesk() ? `Drag to draw. Drag with Look, or right-drag with any tool, to move the map. Wheel zooms.<br>Keys: 1–9 tools · Space play · S speed · Z undo · Y redo · X remove · F fit · Esc look.<br>The game saves by itself.` : `One finger draws. Two fingers move and zoom the map. The game saves by itself.${standalone?'':'<br>For fullscreen: Share → Add to Home Screen.'}`)+`<br>Peil ${APP_VERSION}`;
@@ -132,6 +133,12 @@ function showWin(){
 function showLose(){
   save(); sfx('lose');
   modal(`<h2>The sea won</h2><p>Too many houses were lost. Raise the sea dike sooner and keep the pumps on power.</p>
+    <button class="btn" onclick="closeModal()">Look around</button><button class="btn pri" onclick="closeModal();replay()">Try again</button>`);
+}
+
+function showLate(){
+  save(); sfx('lose');
+  modal(`<h2>Out of time</h2><p>The board's patience has run out. A second pump and deeper canals drain faster; count the days before you spend.</p>
     <button class="btn" onclick="closeModal()">Look around</button><button class="btn pri" onclick="closeModal();replay()">Try again</button>`);
 }
 

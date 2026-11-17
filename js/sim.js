@@ -234,7 +234,8 @@ function dailyCheck(){
   if (g.sc.goals.keep && g.stormsPassed>=g.sc.storms.length){
     const keep=gs.find(x=>x.k==='keep'); if (keep && !keep.ok){ g.lost=true; setSpeed(0); showLose(); return; }
   }
-  if (gs.length && gs.every(x=>x.ok)){ g.won=true; setSpeed(0); showWin(); }
+  if (gs.length && gs.every(x=>x.ok)){ g.won=true; setSpeed(0); showWin(); return; }
+  if (g.sc.deadline && g.tick>=g.sc.deadline*DAY){ g.lost=true; setSpeed(0); showLate(); }
 }
 
 // Drainage stalled? Every 30 days, if the dry share barely moved, say why in one letter.
