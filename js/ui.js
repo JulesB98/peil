@@ -228,6 +228,8 @@ function drawSection(p){
   // deepest bed on the intake side: can this pump ever empty it?
   let bed=1e9; const ra=g.kind[a]===0 ? g.region[a] : -1; if (ra>=0) for (let i=0;i<g.N;i++) if (g.region[i]===ra && g.ground[i]<bed) bed=g.ground[i];
   let lo=1e9, hi=-1e9; for (const c of cols){ lo=Math.min(lo,c.ground); hi=Math.max(hi,c.top, c.lvl==null?-1e9:c.lvl); }
+  const plv = g.sc.peil && g.kind[a]===0 && g.region[a]>=0 ? peilLevel(a) : null, plSet = plv!=null && g.rLvl[g.region[a]]>-1e8;
+  if (plv!=null) hi=Math.max(hi, plv+0.3);
   if (bed<1e9) lo=Math.min(lo,bed); lo=Math.min(lo,floor); lo-=0.4; hi+=0.9;
   const B=sectionBase(cols, lo, hi, 'Cross-section through the pump: '+sideName(a)+' to '+sideName(b)), {Y,X,cw,W}={...B,W:SEC.W}, H=SEC.H;
   let s=B.s;
@@ -240,6 +242,10 @@ function drawSection(p){
   if (bed<1e9){ const yb=Y(bed); tyB=yb-3; if (Math.abs(yb-yf)<14){ if (yb<yf){ tyB=yb-3; tyF=yf+11; } else { tyF=yf-3; tyB=yb+11; } }
     s+=`<line x1="${inSide[0]}" x2="${inSide[1]}" y1="${yb}" y2="${yb}" stroke="${SEC.ink}" stroke-opacity=".5" stroke-width="1"/>`+secText(xIn, tyB, 'deepest bed '+fmtM(bed), SEC.ink, inLeft?'start':'end', 10.5, 'deepest'); }
   s+=`<line x1="${inSide[0]}" x2="${inSide[1]}" y1="${yf}" y2="${yf}" stroke="${fcol}" stroke-dasharray="5 3" stroke-width="1.6"/>`+secText(xIn, tyF, 'can drain to '+fmtM(floor)+(short?' · not deep enough':''), fcol, inLeft?'start':'end', 10.5, 'drainto');
+  // the peil: the level this basin is held at (or the deepest bed when none is set), as a labelled line across the intake side
+  if (plv!=null){ const yp=Y(plv), pc=SEC.waterDk, ix = inLeft ? xm+cw*0.65 : xm-cw*0.65, label = plSet ? 'peil '+fmtM(plv) : 'no peil set';
+    s+=`<line x1="2" x2="${W-2}" y1="${yp}" y2="${yp}" stroke="${pc}" stroke-width="1.6" stroke-dasharray="1 3" stroke-linecap="round"/>`
+      +`<text x="${ix}" y="${yp-4}" text-anchor="${inLeft?'start':'end'}" font-size="10.5" font-weight="700" fill="${pc}" stroke="#f4ecd8" stroke-width="3" paint-order="stroke" stroke-linejoin="round">${label}</text>`; }
   // the flow: an arrow from the intake water, over the crest, down to the outlet water, the way it goes on the map
   const y1=Y(sIn), y2=Y(sOut), xa = inLeft ? X(kIn)+cw*0.2 : X(kIn)+cw*0.8, xb = inLeft ? X(cols.find(c=>c.i===b).k)+cw*0.8 : X(cols.find(c=>c.i===b).k)+cw*0.2;
   const run = st===0, acol = !ok ? SEC.rood : run ? SEC.waterDk : SEC.muted, peak=Math.min(crest-16, y1-10, y2-10);
