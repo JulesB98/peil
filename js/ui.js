@@ -148,16 +148,18 @@ function inspect(i, quiet){
   else if (k===1) t=`<b>Boezem</b> · level ${fmtM(g.boezem)} · kept near ${fmtM(BZ_NORM)} by the sea sluice`;
   else if (s>=1 && s<=3){
     const T=PUMP[s], st=g.pumpState[i], lift=pumpLift(i), a=sideName(g.pin[i]), b=sideName(g.pout[i]);
-    const why=['pumping '+(g.pumpFlow[i]*24).toFixed(1)+' a day', 'idle: no water at its '+a+' side. Dig a canal up to it.', 'stuck: '+lift.toFixed(1)+' m is more than it can lift.', 'stopped: no road to town.', 'storm: sails furled.', '', 'no open sides.', 'holding barge water: your lock is set to keep '+DRAFT+' m in the canals.'][st];
+    const why=['pumping '+(g.pumpFlow[i]*24).toFixed(1)+' a day', 'idle: no water at its '+a+' side. Dig a canal up to it.', 'stuck: '+lift.toFixed(1)+' m is more than it can lift.', 'stopped: no road to town.', 'storm: sails furled.', '', 'no open sides.', 'holding barge water: your lock is set to keep '+DRAFT+' m in the canals.', 'resting: the basin is at its peil.'][st];
     warn = st===2 || st===3;
     t=`<b>${T.name}</b> · ${a} → ${b} · lift ${Math.max(0,lift).toFixed(1)} of ${T.lift} m · ${why}`;
     actions=[{label:'Reverse', fn:()=>reversePump(i)}];
+    if (g.sc.peil && g.kind[g.pin[i]]===0){ const lv=peilLevel(g.pin[i]), set=g.rLvl[g.region[g.pin[i]]]>-1e8; t+=` · peil ${set?fmtM(lv):'none: drains to the bed ('+fmtM(lv)+')'}`;
+      actions.push({label:'Peil −', fn:()=>{ nudgePeil(i,-1); inspect(i); }}, {label:'Peil +', fn:()=>{ nudgePeil(i,1); inspect(i); }}); }
   } else if (s===S.LOCK){ const sd=lockSides(i); let reach=0; if (g.wPar) for (let j=0;j<g.N;j++) if (g.wPar[j]>=0) reach++;
     warn=!sd || !(g.wPar && sd && g.wPar[sd[0]]>=0);
     t=`<b>Lock</b> · ${warn?'no barge water at its polder side: needs '+DRAFT+' m':'barge water reaches '+reach+' cells'} · ${g.flags.holdPeil?'pumps keep '+DRAFT+' m in barge canals':'pumps drain as deep as they can'} · ${g.flags.lockPass||0} barges through`;
     actions=[{label: g.flags.holdPeil ? 'Drain deeper' : 'Keep barge water', fn:()=>{ g.flags.holdPeil = g.flags.holdPeil ? 0 : 1; inspect(i); }}];
   } else if (s===S.SLUICE) t=`<b>Sluice</b> · ${g.pumpFlow[i]>0.001?'open, draining':'closed. Opens when the outside is lower.'}`;
-  else if (s===S.FARM){ const ship=shipLinked(i), road=connected(i); warn=!road && !ship; t=`<b>Farm</b> · ${SOILS[g.soil[i]]} · ${ship?'ships by barge, '+Math.round(100*g.stock[i]/CART_LOAD)+'% loaded':road?'cart '+Math.round(100*g.stock[i]/CART_LOAD)+'% full':'no road to town'}${d>0.1?' · flooding!':''}`; }
+  else if (s===S.FARM){ const ship=shipLinked(i), road=connected(i); warn=!road && !ship; t=`<b>Farm</b> · ${SOILS[g.soil[i]]} · ${ship?'ships by barge, '+Math.round(100*g.stock[i]/CART_LOAD)+'% loaded':road?'cart '+Math.round(100*g.stock[i]/CART_LOAD)+'% full':'no road to town'}${d>0.1?' · flooding!':''}${g.sc.peil && g.polder[i] ? (()=>{ const gp=peilGap(i); return gp<0.5 ? ' · too wet: land only '+gp.toFixed(1)+' m above the water level' : gp>1.2 ? ' · too dry: '+gp.toFixed(1)+' m above the water level, yield falls' : ' · water level just right'; })() : ''}`; }
   else if (s===S.HOUSE){ warn=!connected(i); t=`<b>House</b> · 5 people · ${connected(i)?'pays tax':'no road to town'}${d>0.1?' · flooding!':''}`; }
   else if (s===S.TOWN) t=`<b>Town</b> · buys grain, sells coal · ${g.carts.length} cart${g.carts.length===1?'':'s'} on the road`;
   else {

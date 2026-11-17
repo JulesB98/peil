@@ -19,7 +19,7 @@ function load(id){
   if ((o.v||1)>SAVE_V) return null;                      // written by a newer version of the game
   if ((o.mapV||1)!==MAP_V) return null;                  // made on an older map layout
   const g=newGame(sc);
-  for (const k of ARR_KEYS){ if (!o[k]){ if (k==='pin'||k==='pout'||k==='stock'||k==='given') continue; return null; } if (o[k].length!==g.N) return null; g[k].set(o[k]); }
+  for (const k of ARR_KEYS){ if (!o[k]){ if (k==='pin'||k==='pout'||k==='stock'||k==='given'||k==='peil') continue; return null; } if (o[k].length!==g.N) return null; g[k].set(o[k]); }
   if (typeof o.money!=='number' || typeof o.boezem!=='number' || !(o.townIdx>=0)) return null;
   g.tick=o.tick||0; g.money=o.money; g.boezem=o.boezem; g.townIdx=o.townIdx; g.houses0=o.houses0||0; g.V0=o.V0||0; g.step=o.step||0; g.unread=o.unread||0;
   g.stormsPassed=o.stormsPassed||0; g.won=!!o.won; g.lost=!!o.lost;

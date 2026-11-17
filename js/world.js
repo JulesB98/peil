@@ -11,7 +11,7 @@ function newGame(sc){
     ground:new Float32Array(N), depth:new Float32Array(N), dike:new Float32Array(N), kind:new Uint8Array(N),
     soil:new Uint8Array(N), struct:new Uint8Array(N), road:new Uint8Array(N), canal:new Uint8Array(N), polder:new Uint8Array(N),
     ripe:new Float32Array(N), sold:new Uint8Array(N), flood:new Uint8Array(N), pin:new Int32Array(N).fill(-1), pout:new Int32Array(N).fill(-1),
-    stock:new Float32Array(N), given:new Uint8Array(N),
+    stock:new Float32Array(N), given:new Uint8Array(N), peil:new Float32Array(N).fill(PEIL_OFF),
     // scalars, saved
     tick:0, money:sc.money, boezem:BZ_NORM, townIdx:0, houses0:0, V0:0.5, step:0, unread:0, stormsPassed:0, won:false, lost:false,
     stats:{breaches:0, housesLost:0}, done:{}, stormFlags:{}, flags:{}, log:[], carts:[], boats:[],
@@ -22,9 +22,9 @@ function newGame(sc){
     // derived by rebuild() and metrics()
     bArea:0, region:null, rSize:null, rOpen:null, rPolder:null, lakeRegion:-1, pumps:[], sluices:[],
     pumpFlow:null, pumpState:null, pumpAng:null, net:null, netPar:null, nearCanal:null, lane:[], m:null,
-    locks:[], wPar:null, wTick:-1 };
+    locks:[], wPar:null, wTick:-1, rLvl:null, rBed:null };
 }
-const ARR_KEYS = ['ground','depth','dike','kind','soil','struct','road','canal','polder','ripe','sold','flood','pin','pout','stock','given'];
+const ARR_KEYS = ['ground','depth','dike','kind','soil','struct','road','canal','polder','ripe','sold','flood','pin','pout','stock','given','peil'];
 
 /* ----- map layout -----
    Every map is generated in one canonical frame: open sea along the top (rows 0-2), the sea dike on row 3,
@@ -220,6 +220,7 @@ function rebuild(){
   for (let i=0;i<N;i++){ const s=g.struct[i]; if (s>=1 && s<=3) g.pumps.push(i); else if (s===S.SLUICE) g.sluices.push(i); else if (s===S.LOCK) g.locks.push(i); }
   g.wTick=-1;
   for (const p of g.pumps){ const a=g.pin[p], b=g.pout[p]; if (a<0 || b<0 || g.dike[a]>0 || g.dike[b]>0 || g.kind[a]===2) autoDir(p); }
+  peilRegions();
   if (!g.pumpFlow || g.pumpFlow.length!==N){ g.pumpFlow=new Float32Array(N); g.pumpState=new Uint8Array(N); g.pumpAng=new Float32Array(N); }
   // road network from town (roads, dike tops), breadth-first so netPar gives the shortest way home
   g.net = new Uint8Array(N); g.netPar = new Int32Array(N).fill(-1);

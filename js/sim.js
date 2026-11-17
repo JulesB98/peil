@@ -55,6 +55,7 @@ function tick(){
     let flow=0, state=0;
     if (inI<0 || outI<0) state=6;                                   // no valid sides
     else if (!hasWater(inI) || (g.kind[inI]===0 && g.depth[inI]<0.03)) state=1; // nothing to pump
+    else if (g.sc.peil && g.region[inI]>=0 && surf(inI) <= g.rLvl[g.region[inI]]+0.01) state=8;  // resting at its peil
     else if (g.flags.holdPeil && g.locks.length && g.depth[inI]<=DRAFT+0.05 && lockRegion(g.region[inI])) state=7; // holding barge water
     else {
       const lift=surf(outI)-surf(inI);
@@ -118,7 +119,8 @@ function tick(){
     if (g.polder[i] && g.dike[i]===0 && !g.canal[i]){
       if (d<0.03){
         if (g.ripe[i]<1){ g.ripe[i]=Math.min(1, g.ripe[i]+ripeStep*(g.soil[i]===1?0.8:1)); if (g.ripe[i]>=1 && !g.sold[i]){ g.sold[i]=1; g.money+=12; onLandSold(i); } }
-        if (g.soil[i]===1) g.ground[i]-=0.000004;
+        if (g.sc.peil){ const gp=peilGap(i); if (gp>0.8) g.ground[i]-=0.00006*SUBS[g.soil[i]]*(gp-0.8); }
+        else if (g.soil[i]===1) g.ground[i]-=0.000004;
       } else if (d>0.3 && g.ripe[i]>0) g.ripe[i]=Math.max(0, g.ripe[i]-ripeStep*4);
     }
     if (s===S.FARM || s===S.HOUSE){
@@ -127,7 +129,7 @@ function tick(){
       if (!connected(i) && !(s===S.FARM && shipLinked(i))) continue;
       if (s===S.FARM){
         // grain piles up at the farm and leaves by cart (freight.js); the cart pays when it reaches town
-        farmsOK++; const inc=0.08*FERT[g.soil[i]]*(g.polder[i]?0.4+0.6*g.ripe[i]:0.8);
+        farmsOK++; const inc=0.08*FERT[g.soil[i]]*(g.polder[i]?0.4+0.6*g.ripe[i]:0.8)*(g.sc.peil && g.polder[i] ? peilYield(peilGap(i)) : 1);
         income += inc; g.stock[i] += inc; if (g.stock[i] >= CART_LOAD) grainCart(i);
       }
       else housesOK++;
@@ -198,7 +200,7 @@ function stormEvents(t){
 
 /* ===== METRICS / GOALS ===== */
 function metrics(){
-  const g=G, C=g.C; let tot=0, dry=0, farms=0, houses=0, dikes=0, canals=0, deep=0, sluices=0, electric=0, farmsLinked=0, seaMin=99, armSea=0;
+  const g=G, C=g.C; let cropSum=0, tot=0, dry=0, farms=0, houses=0, dikes=0, canals=0, deep=0, sluices=0, electric=0, farmsLinked=0, seaMin=99, armSea=0;
   const open=[]; let vol=0, wsum=0, wlev=0;
   for (let i=0;i<g.N;i++){
     if (g.polder[i] && g.kind[i]===0 && !g.canal[i] && g.dike[i]===0){ vol+=g.depth[i]; if (g.depth[i]>0.05){ wsum+=g.depth[i]; wlev+=g.depth[i]*(g.ground[i]+g.depth[i]); } }
@@ -210,15 +212,16 @@ function metrics(){
     const front=seaFront(i); if (front) seaMin=Math.min(seaMin, g.ground[i]+g.dike[i]);
     if (g.kind[i]===2 && !openSeaCell(g,i)) armSea++;
     if (g.polder[i] && g.dike[i]===0 && !g.canal[i] && g.kind[i]===0){ tot++; if (g.depth[i]<0.05) dry++; }
-    const s=g.struct[i]; if (s===S.FARM) farms++; else if (s===S.HOUSE) houses++;
+    const s=g.struct[i]; if (s===S.FARM){ farms++; cropSum+=g.sc.peil && g.polder[i] ? peilYield(peilGap(i)) : 1; } else if (s===S.HOUSE) houses++;
     if (g.dike[i]>0 && (g.polder[i] || !front)) dikes++;
   }
-  g.m = { dry: tot? dry/tot : 0, farms, houses, pop:g.pop||0, pumps:(g.pumps||[]).length, dikes, openings:open.length, open, canals, deepCanals:deep, sluices, electric, farmsLinked, seaMin, armSea, enclosed: g.lakeRegion>=0 && g.rPolder ? g.rPolder[g.lakeRegion] : 0, basins: g.rSize? g.rSize.filter((n,id)=>!g.rOpen[id] && id!==g.lakeRegion && n>=3 && n<=150).length : 0, waterLeft: g.V0>50 ? vol/g.V0 : 0, lakeLevel: wsum>1 ? wlev/wsum : -99 };
+  g.m = { crop: farms? cropSum/farms : 1, dry: tot? dry/tot : 0, farms, houses, pop:g.pop||0, pumps:(g.pumps||[]).length, dikes, openings:open.length, open, canals, deepCanals:deep, sluices, electric, farmsLinked, seaMin, armSea, enclosed: g.lakeRegion>=0 && g.rPolder ? g.rPolder[g.lakeRegion] : 0, basins: g.rSize? g.rSize.filter((n,id)=>!g.rOpen[id] && id!==g.lakeRegion && n>=3 && n<=150).length : 0, waterLeft: g.V0>50 ? vol/g.V0 : 0, lakeLevel: wsum>1 ? wlev/wsum : -99 };
 }
 function goalState(){
   const g=G, go=g.sc.goals, out=[];
   if (go.dry!=null) out.push({k:'dry', label:'Dry', v:g.m.dry, target:go.dry, ok:g.m.dry>=go.dry, pct:true});
   if (go.farms) out.push({k:'farms', label:'Farms', v:g.m.farms, target:go.farms, ok:g.m.farms>=go.farms});
+  if (go.crop) out.push({k:'crop', label:'Crops', v:g.m.crop, target:go.crop, ok:g.m.farms>0 && g.m.crop>=go.crop, pct:true});
   if (go.pop) out.push({k:'pop', label:'People', v:g.m.pop, target:go.pop, ok:g.m.pop>=go.pop});
   if (go.keep){ const frac = g.houses0? g.m.houses/g.houses0 : 1; out.push({k:'keep', label:'Houses', v:frac, target:go.keep, ok:frac>=go.keep, pct:true, fail: frac<go.keep}); }
   if (go.steps){ const n=(g.sc.steps||[]).length; out.push({k:'steps', label:'Lesson', v:Math.min(g.step,n), target:n, ok:g.step>=n}); }
@@ -264,3 +267,27 @@ function stallAdvice(g){
 
 // Is there a lock whose polder side lies in this region? Pumps in that region hold barge water when the lock asks.
 function lockRegion(r){ if (r<0) return false; for (const p of G.locks){ const sd=lockSides(p); if (sd && G.region[sd[0]]===r) return true; } return false; }
+
+
+/* ----- Peil: the water level a basin is held at -----
+   Each pump has a peil (0 = none: drain as deep as it can). A basin's level is the lowest peil among its pumps, never below its
+   own deepest ground (canals count). Land wants to sit 0.5 to 1.2 m above that level: wetter and crops fail, drier and the
+   soil shrinks (peat most) and yields fall. Only maps with sc.peil use this. */
+function peilRegions(){
+  const g=G, n=g.rSize.length; g.rLvl=new Float32Array(n).fill(-1e9); g.rBed=new Float32Array(n).fill(1e9);
+  for (let i=0;i<g.N;i++){ const r=g.region[i]; if (r>=0 && g.kind[i]===0 && g.ground[i]<g.rBed[r]) g.rBed[r]=g.ground[i]; }
+  const set=new Float32Array(n).fill(1e9);
+  for (const p of g.pumps){ const a=g.pin[p]; if (a<0 || g.kind[a]!==0) continue; const r=g.region[a]; if (r<0) continue; if (g.peil[p]>PEIL_OFF+1 && g.peil[p]<set[r]) set[r]=g.peil[p]; }
+  for (let r=0;r<n;r++) g.rLvl[r]=Math.max(set[r]<1e9 ? set[r] : -1e9, -1e9);
+}
+// level the land of cell i actually sees: the set peil, or the deepest bed the pumps can reach
+function peilLevel(i){ const g=G, r=g.region[i]; if (r<0) return -99; return Math.max(g.rLvl[r], g.rBed[r]); }
+function peilGap(i){ return G.ground[i]-peilLevel(i); }
+function peilYield(gap){ if (gap<0.5) return Math.max(0, (gap-0.1)/0.4); if (gap>1.2) return Math.max(0.55, 1-0.3*(gap-1.2)); return 1; }
+// set the peil of every pump in the same basin as pump p, in 0.25 m steps; going to the bed (or below) means no peil
+function nudgePeil(p, dir){
+  const g=G, a=g.pin[p]; if (a<0 || g.kind[a]!==0) return false; const r=g.region[a]; if (r<0) return false;
+  const bed=g.rBed[r], cur=Math.max(g.rLvl[r], bed); let v=Math.round((cur+dir*0.25)*4)/4; if (v<=bed+0.01) v=PEIL_OFF; v=Math.min(v, bed+4);
+  for (const q of g.pumps) if (g.pin[q]>=0 && g.region[g.pin[q]]===r) g.peil[q]=v;
+  peilRegions(); return true;
+}

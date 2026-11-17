@@ -4,6 +4,8 @@ const APP_VERSION = '2.0';
 const MAP_V = 2;                // map layout version: 2 = varied maps (flips, lobes, arms, peat strips)
 const SAVE_V = 2;               // save format version (see save.js for migrations)
 const DAY = 24;                 // ticks per game day (1 tick = 1 hour)
+const PEIL_OFF = -99;           // a pump with no peil set drains its basin as deep as it can
+const SUBS = [0.3, 1, 0.15];    // how fast drained land sinks, by soil (clay, peat, sand)
 const BZ_NORM = -0.4;           // boezem target level (m NAP)
 const SPEEDS = [0, 6, 20, 60];  // ticks per real second
 const MONTHS = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
