@@ -40,7 +40,9 @@ function showMenu(){
   const list=$('scList'); list.innerHTML='';
   const last=lsGet('peil_last');
   if (last && hasSave(last)){ const sc=SCENARIOS.find(s=>s.id===last); if (sc){ const b=document.createElement('button'); b.className='sc cont'; b.innerHTML=`<div class="n">${svg('play')}</div><div class="t"><b>Continue</b><span>${sc.id==='random'?'Random map #'+sc.rnd:sc.name}</span></div>`; b.onclick=()=>{ initAudio(); startScenario(last,true); }; list.appendChild(b); } }
+  const lab=t=>{ const d=document.createElement('div'); d.className='mlabel'; d.textContent=t; list.appendChild(d); };
   SCENARIOS.forEach((sc,n)=>{
+    if (n===1) lab('Chapters'); if (sc.id==='random') lab('Free play');
     const b=document.createElement('button'); b.style.setProperty('--i', Math.min(n,6)); b.className='sc'+(sc.tutorial && !starsFor(sc.id) ? ' learn' : '');
     b.innerHTML=`<div class="n">${sc.sandbox?'∞':sc.tutorial?'?':n}</div><div class="t"><b>${sc.id==='random'?'Random map':sc.name}</b><span>${sc.id==='random'?'A new lake every time · always winnable.':sc.blurb}</span></div>${sc.sandbox||sc.tutorial?(sc.tutorial&&starsFor(sc.id)?'<div class="stars" aria-label="done">✓</div>':''):`<div class="stars" aria-label="${starsFor(sc.id)} of 3 stars">${starHtml(starsFor(sc.id))}</div>`}`;
     b.onclick=()=>{ initAudio();
@@ -50,22 +52,35 @@ function showMenu(){
       if (o && (o.mapV||1)===MAP_V && o.tick>0 && !o.won && !o.lost) modal(`<h2>${sc.name}</h2><p>You have a game in progress here.</p><button class="btn" onclick="closeModal();startScenario('${sc.id}',false)">Start over</button><button class="btn pri" onclick="closeModal();startScenario('${sc.id}',true)">Continue</button>`);
       else startScenario(sc.id,false); };
     list.appendChild(b);
+    if (sc.id==='random'){ const d=document.createElement('div'); d.className='rdiff'; d.innerHTML='<span>Difficulty</span>'+segHtml('diff', RANDOM_DIFFS.map((x,i)=>[i,x.name]), RANDOM_DIFF); list.appendChild(d); }
   });
-  const tg=$('toggles'); tg.innerHTML='';
-  const mk=(label, key, fn)=>{ const b=document.createElement('button'); b.className='tg'+(SET[key]?' on':''); b.setAttribute('aria-pressed', SET[key]); b.innerHTML=`${label} <b>${SET[key]?'on':'off'}</b>`; b.onclick=()=>{ fn(!SET[key]); showMenu(); }; tg.appendChild(b); };
-  mk('Sound', 'sound', v=>{ setSound(v); if (v) sfx('tap'); });
-  mk('Haptics', 'haptics', v=>{ SET.haptics=v; saveSettings(); haptic(); });
-  { const b=document.createElement('button'); b.className='tg'; b.innerHTML=`Theme <b>${SET.theme}</b>`; b.onclick=()=>{ SET.theme={auto:'dark',dark:'light',light:'auto'}[SET.theme]||'auto'; saveSettings(); applyTheme(); showMenu(); }; tg.appendChild(b); }
-  { const b=document.createElement('button'); b.className='tg'; b.innerHTML=`Layout <b>${isDesk()?'desktop':'phone'}</b>`; b.onclick=()=>setMode(isDesk()?'phone':'desktop'); tg.appendChild(b); }
-  { const b=document.createElement('button'); b.className='tg'; b.innerHTML='Back up saves <b>file</b>'; b.onclick=backupSaves; tg.appendChild(b); }
-  { const b=document.createElement('button'); b.className='tg'; b.innerHTML='Restore saves <b>file</b>'; b.onclick=()=>{ const i=document.createElement('input'); i.type='file'; i.accept='application/json,.json'; i.onchange=()=>{ const f=i.files&&i.files[0]; if (f) f.text().then(restoreSaves).catch(()=>modal('<h2>Restore saves</h2><p>Could not read that file.</p><button class="btn pri" onclick="closeModal()">OK</button>')); }; i.click(); }; tg.appendChild(b); }
-  { const b=document.createElement('button'); b.className='tg'; b.innerHTML=`Random map difficulty <b>${RANDOM_DIFFS[RANDOM_DIFF].name}</b>`; b.onclick=()=>{ RANDOM_DIFF=(RANDOM_DIFF+1)%RANDOM_DIFFS.length; lsSet('peil_rdiff', RANDOM_DIFF); showMenu(); }; tg.appendChild(b); }
-  mk('Playtest log', 'playtest', v=>{ SET.playtest=v; saveSettings(); if (v) ptLog('s','toggle'); });
-  if (SET.playtest){ const e=document.createElement('button'); e.className='tg'; e.innerHTML=`Export playtest log <b>${PT.ev.length} events</b>`; e.onclick=ptExport; tg.appendChild(e);
-    const c=document.createElement('button'); c.className='tg'; c.innerHTML='Clear playtest log <b>wipe</b>'; c.onclick=()=>{ ptClear(); showMenu(); }; tg.appendChild(c); }
-  mk('Touch debug', 'debug', v=>{ SET.debug=v; saveSettings(); requestRender(); });
-  const standalone = window.navigator.standalone || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
-  $('foot').innerHTML=(isDesk() ? `Drag to draw. Drag with Look, or right-drag with any tool, to move the map. Wheel zooms.<br>Keys: 1–9 tools · Space play · S speed · Z undo · Y redo · X remove · F fit · Esc look.<br>The game saves by itself.` : `One finger draws. Two fingers move and zoom the map. The game saves by itself.${standalone?'':'<br>For fullscreen: Share → Add to Home Screen.'}`)+`<br>Peil ${APP_VERSION}`;
+  $('toggles').innerHTML=''; $('foot').innerHTML='Peil '+APP_VERSION;
+}
+// Settings sheet: one place for every option, grouped, with segmented controls (no cycling buttons).
+function segHtml(k, opts, cur){ return `<div class="seg" role="group">${opts.map(([v,l])=>`<button class="${String(v)===String(cur)?'on':''}" aria-pressed="${String(v)===String(cur)}" onclick="setOpt('${k}','${v}')">${l}</button>`).join('')}</div>`; }
+function srow(label, k, opts, cur){ return `<div class="srow"><span>${label}</span>${segHtml(k,opts,cur)}</div>`; }
+function setOpt(k, v){
+  if (k==='sound'){ setSound(v==='on'); if (v==='on') sfx('tap'); }
+  else if (k==='haptics'){ SET.haptics=v==='on'; saveSettings(); haptic(); }
+  else if (k==='theme'){ SET.theme=v; saveSettings(); applyTheme(); }
+  else if (k==='layout'){ setMode(v); showSettings(); return; }
+  else if (k==='diff'){ RANDOM_DIFF=+v; lsSet('peil_rdiff', RANDOM_DIFF); showMenu(); return; }
+  else if (k==='playtest'){ SET.playtest=v==='on'; saveSettings(); if (SET.playtest) ptLog('s','toggle'); }
+  else if (k==='debug'){ SET.debug=v==='on'; saveSettings(); requestRender(); }
+  showSettings();
+}
+function restorePick(){ const i=document.createElement('input'); i.type='file'; i.accept='application/json,.json'; i.onchange=()=>{ const f=i.files&&i.files[0]; if (f) f.text().then(restoreSaves).catch(()=>modal('<h2>Restore saves</h2><p>Could not read that file.</p><button class="btn pri" onclick="closeModal()">OK</button>')); }; i.click(); }
+function showSettings(){
+  const onoff=[['on','On'],['off','Off']], standalone = window.navigator.standalone || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+  const help = isDesk() ? 'Drag to draw. Drag with Look, or right-drag with any tool, to move the map. Wheel zooms. Keys: 1–9 tools · Space play · S speed · Z undo · Y redo · X remove · F fit · Esc look.' : 'One finger draws. Two fingers move and zoom the map.'+(standalone?'':' For fullscreen: Share → Add to Home Screen.');
+  modal(`<div class="settings"><h2>Settings</h2>
+    <div class="sgroup"><h3>Sound and touch</h3>${srow('Sound','sound',onoff,SET.sound?'on':'off')}${srow('Haptics','haptics',onoff,SET.haptics?'on':'off')}</div>
+    <div class="sgroup"><h3>Display</h3>${srow('Theme','theme',[['auto','Auto'],['light','Light'],['dark','Dark']],SET.theme)}${srow('Layout','layout',[['phone','Phone'],['desktop','Desktop']],isDesk()?'desktop':'phone')}</div>
+    <div class="sgroup"><h3>Saves</h3><p class="note">The game saves by itself. A backup file lets you move your progress to another device.</p><div class="brow"><button class="btn" onclick="backupSaves()">Back up</button><button class="btn" onclick="restorePick()">Restore</button></div></div>
+    <div class="sgroup"><h3>How to play</h3><p class="note">${help}</p></div>
+    <details class="sgroup test"${SET.playtest||SET.debug?' open':''}><summary>Testing tools</summary>${srow('Playtest log','playtest',onoff,SET.playtest?'on':'off')}${SET.playtest?`<div class="brow"><button class="btn" onclick="ptExport()">Export log (${PT.ev.length})</button><button class="btn" onclick="ptClear();showSettings()">Clear log</button></div>`:''}${srow('Touch debug','debug',onoff,SET.debug?'on':'off')}</details>
+    <p class="note ver">Peil ${APP_VERSION}</p>
+    <button class="btn pri" onclick="closeModal()">Done</button></div>`);
 }
 function startScenario(id, cont){
   const sc=SCENARIOS.find(s=>s.id===id);

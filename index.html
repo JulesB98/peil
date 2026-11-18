@@ -163,6 +163,28 @@ button:disabled{cursor:not-allowed}
 .tg.on{border-color:var(--ink);background:var(--accentbg);color:var(--ink);box-shadow:inset 0 -3px 0 var(--warn)}
 .tg b{font-weight:600}
 .foot{color:var(--muted);font-size:var(--fs-2);margin-top:14px;text-align:center;max-width:320px;line-height:1.5}
+
+.gear{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;width:48px;height:48px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card);color:var(--ink);display:flex;align-items:center;justify-content:center}
+.logo{font-size:52px!important;margin:4px 0 2px!important}
+.wave{margin-bottom:8px!important}.sub{margin-bottom:14px!important}
+.sc{min-height:56px!important;padding:10px var(--s4)!important;margin-bottom:6px!important}
+.sc .t b{font-size:17px}
+.sc .t span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mlabel{width:100%;max-width:420px;margin:12px 0 6px;padding:0 4px;font:700 11.5px/1.2 inherit;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.rdiff{width:100%;max-width:420px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-2px 0 8px;padding:0 4px;color:var(--muted);font-size:var(--fs-2)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r-s);overflow:hidden;background:var(--card)}
+.seg button{min-height:44px;min-width:56px;padding:0 12px;font-size:var(--fs-2);color:var(--muted);border:0;background:transparent;border-left:1px solid var(--line)}
+.seg button:first-child{border-left:0}
+.seg button.on{background:var(--ink);color:var(--paper);font-weight:700}
+.settings{text-align:left}.settings h2{text-align:center;margin-bottom:10px}
+.sgroup{border-top:1px solid var(--rule);padding:10px 0 4px}
+.sgroup h3,.sgroup summary{margin:0 0 6px;font:700 11.5px/1.2 var(--sans,inherit);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sgroup summary::after{content:' ▾';}.sgroup[open] summary::after{content:' ▴';}.sgroup summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
+.srow+.srow{margin-top:8px}.srow{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:48px}
+.settings .note{margin:0 0 8px;font-size:var(--fs-2);color:var(--muted);line-height:1.5}
+.settings .ver{text-align:center}
+.brow{display:flex;gap:8px;margin-bottom:6px}.brow .btn{flex:1;margin:0}
+.settings>.btn.pri{display:block;width:100%;margin:8px 0 0}
 .modalwrap{position:absolute;inset:0;background:var(--scrim);display:flex;align-items:center;justify-content:center;z-index:20;padding:20px}
 .modal{background:var(--card);border-radius:var(--r-l);padding:var(--s4) 20px 20px;max-width:360px;width:100%;text-align:center;border:1px solid var(--rule);box-shadow:0 4px 0 -2px var(--rule),0 18px 40px -18px rgba(30,20,10,.55);max-height:100%;overflow-y:auto}
 .modal h2{margin:0 0 6px;font:italic 400 28px/1.1 var(--serif)}
@@ -297,6 +319,7 @@ html.film #top,html.film #tools,html.film #dock,html.film #zoom,html.film #step{
   </div>
 
   <div class="overlay" id="menu">
+    <button class="gear" id="bSettings" aria-label="Settings" onclick="showSettings()"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h9M17 7h3M4 17h3M11 17h9M4 12h16"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></button>
     <h1 class="logo">Peil</h1>
     <svg class="wave" viewBox="0 0 120 22" fill="none" aria-hidden="true"><path d="M0 6 Q15 1 30 6 T60 6 T90 6 T120 6" stroke="#44707c" stroke-width="2"/><path d="M0 13 Q15 8 30 13 T60 13 T90 13 T120 13" stroke="currentColor" stroke-width="1.3"/><path d="M0 19 Q15 14 30 19 T60 19 T90 19 T120 19" stroke="currentColor" stroke-width=".9"/></svg>
     <div class="sub">Keep the water at the level you choose.</div>
