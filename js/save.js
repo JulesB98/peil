@@ -34,26 +34,33 @@ function hasSave(id){ const o=lsGet('peil_save_'+id); return !!o && (o.mapV||1)=
 function starsFor(id){ return (lsGet('peil_stars')||{})[id]||0; }
 function starHtml(n){ return '★'.repeat(n)+'<i>'+'☆'.repeat(3-n)+'</i>'; }   // stars not yet earned are outlines, not just paler
 
-function showMenu(){
+let MENU_VIEW='home';
+// Home: Continue, New game (opens the chapter list), Random map. Chapters live on their own screen so home stays short.
+function showMenu(view){
   if (G){ save(); }
+  if (typeof view==='string') MENU_VIEW=view; else MENU_VIEW='home';
   setSpeed(0); $('menu').classList.remove('hide');
-  const list=$('scList'); list.innerHTML='';
+  const list=$('scList'); list.innerHTML=''; const levels = MENU_VIEW==='levels';
+  $('menu').classList.toggle('levels', levels);
   const last=lsGet('peil_last');
-  if (last && hasSave(last)){ const sc=SCENARIOS.find(s=>s.id===last); if (sc){ const b=document.createElement('button'); b.className='sc cont'; b.innerHTML=`<div class="n">${svg('play')}</div><div class="t"><b>Continue</b><span>${sc.id==='random'?'Random map #'+sc.rnd:sc.name}</span></div>`; b.onclick=()=>{ initAudio(); startScenario(last,true); }; list.appendChild(b); } }
-  const lab=t=>{ const d=document.createElement('div'); d.className='mlabel'; d.textContent=t; list.appendChild(d); };
-  SCENARIOS.forEach((sc,n)=>{
-    if (n===1) lab('Chapters'); if (sc.id==='random') lab('Free play');
-    const b=document.createElement('button'); b.style.setProperty('--i', Math.min(n,6)); b.className='sc'+(sc.tutorial && !starsFor(sc.id) ? ' learn' : '');
-    b.innerHTML=`<div class="n">${sc.sandbox?'∞':sc.tutorial?'?':n}</div><div class="t"><b>${sc.id==='random'?'Random map':sc.name}</b><span>${sc.id==='random'?'A new lake every time · always winnable.':sc.blurb}</span></div>${sc.sandbox||sc.tutorial?(sc.tutorial&&starsFor(sc.id)?'<div class="stars" aria-label="done">✓</div>':''):`<div class="stars" aria-label="${starsFor(sc.id)} of 3 stars">${starHtml(starsFor(sc.id))}</div>`}`;
-    b.onclick=()=>{ initAudio();
-      if (sc.id==='random'){ const o=lsGet('peil_save_random'); if (o && o.rseed && (o.mapV||1)===MAP_V && o.tick>0 && !o.won && !o.lost) modal(`<h2>Random map</h2><p>Map #${o.rseed} is in progress.</p><button class="btn" onclick="closeModal();rollRandom()">New map</button><button class="btn pri" onclick="closeModal();startScenario('random',true)">Continue it</button>`); else rollRandom(); return; }
-      // never throw away a game in progress without asking
-      const o=lsGet('peil_save_'+sc.id);
-      if (o && (o.mapV||1)===MAP_V && o.tick>0 && !o.won && !o.lost) modal(`<h2>${sc.name}</h2><p>You have a game in progress here.</p><button class="btn" onclick="closeModal();startScenario('${sc.id}',false)">Start over</button><button class="btn pri" onclick="closeModal();startScenario('${sc.id}',true)">Continue</button>`);
-      else startScenario(sc.id,false); };
-    list.appendChild(b);
-    if (sc.id==='random'){ const d=document.createElement('div'); d.className='rdiff'; d.innerHTML='<span>Difficulty</span>'+segHtml('diff', RANDOM_DIFFS.map((x,i)=>[i,x.name]), RANDOM_DIFF); list.appendChild(d); }
-  });
+  const card=(cls, n, title, sub, right, fn)=>{ const b=document.createElement('button'); b.className='sc'+(cls?' '+cls:''); b.innerHTML=`<div class="n">${n}</div><div class="t"><b>${title}</b><span>${sub}</span></div>${right||''}`; b.onclick=()=>{ initAudio(); fn(); }; list.appendChild(b); return b; };
+  const guard=(sc, fn)=>{   // never throw away a game in progress without asking
+    if (sc.id==='random'){ const o=lsGet('peil_save_random'); if (o && o.rseed && (o.mapV||1)===MAP_V && o.tick>0 && !o.won && !o.lost) modal(`<h2>Random map</h2><p>Map #${o.rseed} is in progress.</p><button class="btn" onclick="closeModal();rollRandom()">New map</button><button class="btn pri" onclick="closeModal();startScenario('random',true)">Continue it</button>`); else rollRandom(); return; }
+    const o=lsGet('peil_save_'+sc.id);
+    if (o && (o.mapV||1)===MAP_V && o.tick>0 && !o.won && !o.lost) modal(`<h2>${sc.name}</h2><p>You have a game in progress here.</p><button class="btn" onclick="closeModal();startScenario('${sc.id}',false)">Start over</button><button class="btn pri" onclick="closeModal();startScenario('${sc.id}',true)">Continue</button>`);
+    else startScenario(sc.id,false); };
+  if (!levels){
+    if (last && hasSave(last)){ const sc=SCENARIOS.find(s=>s.id===last); if (sc) card('cont', svg('play'), 'Continue', sc.id==='random'?'Random map #'+sc.rnd:sc.name, '', ()=>startScenario(last,true)); }
+    const done=SCENARIOS.filter(s=>!s.tutorial&&!s.sandbox&&s.id!=='random'&&starsFor(s.id)).length, total=SCENARIOS.filter(s=>!s.tutorial&&!s.sandbox&&s.id!=='random').length;
+    card('', '＋', 'New game', done?`Choose a chapter · ${done} of ${total} done`:'Choose a chapter', '<div class="chev">›</div>', ()=>showMenu('levels'));
+    const rs=SCENARIOS.find(s=>s.id==='random'); if (rs){ const rb=card('', '⚄', 'Random map', 'A new lake every time · always winnable', '', ()=>guard(rs)); const w=document.createElement('div'); w.className='rcard'; list.insertBefore(w, rb); w.appendChild(rb); const d=document.createElement('div'); d.className='rdiff'; d.innerHTML='<span>Random map difficulty</span>'+segHtml('diff', RANDOM_DIFFS.map((x,i)=>[i,x.name]), RANDOM_DIFF); w.appendChild(d); }
+  } else {
+    const back=document.createElement('button'); back.className='mback'; back.innerHTML='‹ Back'; back.onclick=()=>showMenu(); list.appendChild(back);
+    const h=document.createElement('div'); h.className='mtitle'; h.textContent='Choose a chapter'; list.appendChild(h);
+    SCENARIOS.forEach((sc,n)=>{ if (sc.id==='random') return;
+      const star = sc.sandbox||sc.tutorial ? (sc.tutorial&&starsFor(sc.id)?'<div class="stars" aria-label="done">✓</div>':'') : `<div class="stars" aria-label="${starsFor(sc.id)} of 3 stars">${starHtml(starsFor(sc.id))}</div>`;
+      const b=card(sc.tutorial && !starsFor(sc.id) ? 'learn' : '', sc.sandbox?'∞':sc.tutorial?'?':n, sc.name, sc.blurb, star, ()=>guard(sc)); b.style.setProperty('--i', Math.min(n,6)); });
+  }
   $('toggles').innerHTML=''; $('foot').innerHTML='Peil '+APP_VERSION;
 }
 // Settings sheet: one place for every option, grouped, with segmented controls (no cycling buttons).
@@ -134,7 +141,7 @@ function toolCard(t, then){
 function showReal(sc, then){
   const st=STORY[sc.id]; if (!st || !st.real){ if (then) then(); return; } const r=st.real;
   modal(`<div class="real">${picHtml(st.photo)}<div class="tag">In real life</div><h3>${r.title}</h3><p class="serif">${r.text}</p><ul>${r.facts.map(f=>`<li>${f}</li>`).join('')}</ul>
-    <button class="btn pri" onclick="closeModal();${then?'showMenu()':''}">${then?'Next chapter':'Close'}</button></div>`);
+    <button class="btn pri" onclick="closeModal();${then?'showMenu(\'levels\')':''}">${then?'Next chapter':'Close'}</button></div>`);
 }
 function modal(html){ $('modal').innerHTML=html; glossify($('modal'),'.intro p,.real p,.real li,.tinfo p,.goalbox'); $('modalwrap').classList.remove('hide'); document.documentElement.classList.add('modalopen'); }
 function closeModal(){ $('modalwrap').classList.add('hide'); document.documentElement.classList.remove('modalopen'); }
