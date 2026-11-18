@@ -129,7 +129,7 @@ function tick(){
       if (!connected(i) && !(s===S.FARM && shipLinked(i))) continue;
       if (s===S.FARM){
         // grain piles up at the farm and leaves by cart (freight.js); the cart pays when it reaches town
-        farmsOK++; const inc=0.08*FERT[g.soil[i]]*(g.polder[i]?0.4+0.6*g.ripe[i]:0.8)*(g.sc.peil && g.polder[i] ? peilYield(peilGap(i)) : 1);
+        farmsOK++; const inc=0.08*FERT[g.soil[i]]*(g.polder[i]?0.4+0.6*g.ripe[i]:0.8)*(g.sc.peil && g.polder[i] ? peilYield(peilGap(i)) : 1)*(1-0.7*(g.flags.salt||0));
         income += inc; g.stock[i] += inc; if (g.stock[i] >= CART_LOAD) grainCart(i);
       }
       else housesOK++;
@@ -183,6 +183,7 @@ function breach(i){
   g.dike[i]=0; g.ground[i]-=0.3; g.road[i]=0;
   if (g.struct[i]!==S.TOWN) g.struct[i]=0;
   g.stats.breaches++; g.dirty=true;
+  if (typeof seaFront==='function' && seaFront(i) && !(g.flags.salt>0)){ g.flags.salt=1; letter('Salt water. The sea is through the dike and into the ring canal. Salt creeps into the clay, and crops fail until rain washes it out.', true); }
   (g.fx = g.fx||[]).push({i, t:g.tick});
   if (!g.lastBreachMsg || g.tick-g.lastBreachMsg>DAY){ g.lastBreachMsg=g.tick; sfx('breach'); letter('Dike breach! Water is pouring through. Rebuild it once the water drops.', true); }
 }
@@ -212,7 +213,7 @@ function metrics(){
     const front=seaFront(i); if (front) seaMin=Math.min(seaMin, g.ground[i]+g.dike[i]);
     if (g.kind[i]===2 && !openSeaCell(g,i)) armSea++;
     if (g.polder[i] && g.dike[i]===0 && !g.canal[i] && g.kind[i]===0){ tot++; if (g.depth[i]<0.05) dry++; }
-    const s=g.struct[i]; if (s===S.FARM){ farms++; cropSum+=g.sc.peil && g.polder[i] ? peilYield(peilGap(i)) : 1; } else if (s===S.HOUSE) houses++;
+    const s=g.struct[i]; if (s===S.FARM){ farms++; cropSum+=(g.sc.peil && g.polder[i] ? peilYield(peilGap(i)) : 1)*(1-0.7*(g.flags.salt||0)); } else if (s===S.HOUSE) houses++;
     if (g.dike[i]>0 && (g.polder[i] || !front)) dikes++;
   }
   g.m = { crop: farms? cropSum/farms : 1, dry: tot? dry/tot : 0, farms, houses, pop:g.pop||0, pumps:(g.pumps||[]).length, dikes, openings:open.length, open, canals, deepCanals:deep, sluices, electric, farmsLinked, seaMin, armSea, enclosed: g.lakeRegion>=0 && g.rPolder ? g.rPolder[g.lakeRegion] : 0, basins: g.rSize? g.rSize.filter((n,id)=>!g.rOpen[id] && id!==g.lakeRegion && n>=3 && n<=150).length : 0, waterLeft: g.V0>50 ? vol/g.V0 : 0, lakeLevel: wsum>1 ? wlev/wsum : -99 };
@@ -233,6 +234,7 @@ function dailyCheck(){
   for (const L of g.sc.letters){ if (!g.done[L.k] && L.when(g)){ g.done[L.k]=1; letter(L.text, L.alert); break; } }
   if (g.won || g.lost || g.sc.sandbox) return;
   stallAdvice(g);
+  if (g.flags.salt>0) g.flags.salt=Math.max(0, g.flags.salt-1/150);   // rain washes the salt out in about five months
   const gs=goalState();
   if (g.sc.goals.keep && g.stormsPassed>=g.sc.storms.length){
     const keep=gs.find(x=>x.k==='keep'); if (keep && !keep.ok){ g.lost=true; setSpeed(0); showLose(); return; }

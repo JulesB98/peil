@@ -153,11 +153,11 @@ const SCENARIOS = [
       {k:'f2', when:g=>g.m.dry>0.5, text:'Halfway. From the dam the old sea arm looks like a field with a puddle in the middle.'}
     ]},
   { id:'storm', name:'Stormvloed', blurb:'1952 · A full polder and an old sea dike.',
-    start:'1952-03-01', C:40, R:66, money:22000, seed:53,
+    start:'1952-03-01', C:40, R:66, money:10000, seed:53,
     land:0.1, lake:{cx:17, cy:38, rx:9, ry:16, bottom:-4.0, vary:0.4}, ring:true, predrained:true, arms:[{cx:36.5, cy:36, rx:2.5, ry:24, mouth:[35,38], bottom:-4, vary:0.5, sea:true}], topChannel:[1,30], flip:[0,1], seaCrest:2.4,
     soilBias:0, tools:['look','dike','canal','road','mill','steam','electric','sluice','lock','farm','house','remove'],
-    goals:{storm:true, keep:0.9, dry:0.85}, par:365,   // the storm date is fixed (day ~337 + 36 h), so par must sit after it
-    storms:[{date:'1953-01-31', dur:36, surge:3.4}],
+    goals:{storm:true, keep:0.9, dry:0.85, crop:0.8}, par:365,   // the storm date is fixed (day ~337 + 36 h), so par must sit after it
+    storms:[{date:'1953-01-31', dur:36, surge:4.6}],
     sign:'Marijke Pieck, waterschap',
     intro:'The polder has never been fuller: 170 people, good clay, two old steam pumps. The sea is on two sides of us now, the coast and the estuary, and neither dike has been raised since my grandfather\'s time. Everyone says it\'s fine.',
     epilogue:'The sea came up the dike and stopped just short of the top. Further south it didn\'t. We will be raising dikes for the next fifty years.',
@@ -165,7 +165,7 @@ const SCENARIOS = [
       {text:'Pick Look and tap the sea dike. Check its crest.', done:g=>g.flags.inspectedSea, tool:'look', focus:'sea'},
       {text:'Raise every sea dike to +4.5 m, along the coast and the estuary. Draw along it with Dike, then tap Again.', done:g=>g.m.seaMin>=4.5, focus:'sea', tool:'dike'},
       {text:'Build an electric pump as a backup for the old steam pumps.', done:g=>g.m.electric>=1, tool:'electric'},
-      {text:'Get through the winter storm with 90% of homes standing.', done:g=>g.stormsPassed>=1}
+      {text:'Get through the winter storm with 90% of homes standing and the crops healthy. If the sea gets through a dike, salt ruins the crops for months.', done:g=>g.stormsPassed>=1}
     ],
     letters:[
       {k:'f1', when:g=>g.tick>DAY*30, text:'The old mills on the ring dike can\'t lift from this deep. They\'re kept for the postcards.'},
