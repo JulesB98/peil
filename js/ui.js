@@ -245,7 +245,7 @@ function drawSection(p){
   // the peil: the level this basin is held at (or the deepest bed when none is set), as a labelled line across the intake side
   if (plv!=null){ const yp=Y(plv), pc=SEC.waterDk, ix = inLeft ? xm+cw*0.65 : xm-cw*0.65, label = plSet ? 'peil '+fmtM(plv) : 'no peil set';
     s+=`<line x1="2" x2="${W-2}" y1="${yp}" y2="${yp}" stroke="${pc}" stroke-width="1.6" stroke-dasharray="1 3" stroke-linecap="round"/>`
-      +`<text x="${ix}" y="${yp-4}" text-anchor="${inLeft?'start':'end'}" font-size="10.5" font-weight="700" fill="${pc}" stroke="#f4ecd8" stroke-width="3" paint-order="stroke" stroke-linejoin="round">${label}</text>`; }
+      +`<text x="${ix}" y="${(Math.abs(yp-yf)<14 || (bed<1e9 && Math.abs(yp-Y(bed))<14)) ? yp+12 : yp-4}" text-anchor="${inLeft?'start':'end'}" font-size="10.5" font-weight="700" fill="${pc}" stroke="#f4ecd8" stroke-width="3" paint-order="stroke" stroke-linejoin="round">${label}</text>`; }
   // the flow: an arrow from the intake water, over the crest, down to the outlet water, the way it goes on the map
   const y1=Y(sIn), y2=Y(sOut), xa = inLeft ? X(kIn)+cw*0.2 : X(kIn)+cw*0.8, xb = inLeft ? X(cols.find(c=>c.i===b).k)+cw*0.8 : X(cols.find(c=>c.i===b).k)+cw*0.2;
   const run = st===0, acol = !ok ? SEC.rood : run ? SEC.waterDk : SEC.muted, peak=Math.min(crest-16, y1-10, y2-10);

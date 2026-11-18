@@ -2,7 +2,7 @@
    Nothing is sent anywhere; "Export playtest log" saves a JSON file that can be shared by hand. Event rows: [ms, type, ...data].
    Types: u undo/redo, s session start, snap state sample, t tool chosen, a build attempt (ok/fail), i inspect, sp speed, p peil nudge, st lesson step,
    n note (tag), w win, l lose, h tab hidden/visible, e script error. */
-const PT_BUILD = 'peil-v48', PT_KEY = 'peil_playtest', PT_MAX = 6000;
+const PT_BUILD = 'peil-v49', PT_KEY = 'peil_playtest', PT_MAX = 6000;
 const PT = { ev: lsGet(PT_KEY) || [], t0: Date.now(), last: 0, timer: 0, dirty: 0 };
 function ptOn(){ return !!SET.playtest; }
 function ptLog(type, ...d){

@@ -1,6 +1,6 @@
 // Peil service worker: offline play + automatic updates.
 // Bump VERSION on every release so phones pick up the new files.
-const VERSION = 'peil-v48';
+const VERSION = 'peil-v49';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest',
   'js/config.js','js/scenarios.js','js/random.js', 'js/playtest.js','js/story.js','js/util.js','js/glossary.js','js/reveal.js','js/title.js','js/audio.js','js/world.js','js/sim.js','js/freight.js','js/build.js',
