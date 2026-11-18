@@ -19,7 +19,7 @@ function toolAt(id, i, commit){
       return pay(Math.round(8+10*h), ()=>{ if (g.canal[i]){ g.ground[i]=base; g.canal[i]=0; } g.dike[i]=h; g.depth[i]=0; g.dirty=true; });
     }
     case 'canal': {
-      if (k!==0 || g.dike[i]>0 || s) return no('Canals go on open land or lake bed.');
+      if (k!==0 || g.dike[i]>0 || s) return no(g.kind[i]===1 ? 'That is boezem water (the channel). Canals go on land or the lake bed.' : g.kind[i]===2 ? 'That is the sea. Canals go on land or the lake bed.' : 'Canals go on open land or lake bed.');
       if (g.canal[i]>=3) return no('This canal is already 3 m deep.');
       return pay(8, ()=>{ g.canal[i]++; g.ground[i]-=1; g.road[i]=0; g.dirty=true; });
     }

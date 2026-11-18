@@ -65,6 +65,7 @@ function updateHud(){
   if (g.sc.sandbox){ chips.push(`<span class="chip">Dry ${Math.round(g.m.dry*100)}%</span>`); const ns=nextStormText(); if (ns) chips.push(`<span class="chip">Storm ${ns}</span>`); }
   const bz=g.boezem; if (bz>0.1) chips.push(`<span class="chip bad">▲ Boezem ${fmtM1(bz)} m</span>`);
   if (g.sc.deadline){ const left=Math.max(0, Math.ceil(g.sc.deadline-g.tick/DAY)); chips.push(`<span class="chip ${left<=Math.round(g.sc.deadline*0.2)?'bad':''}">${left} days left</span>`); }
+  if (canSkipAhead()) chips.push(`<button class="chip act" onclick="skipAhead()">Skip to the storm ›</button>`);
   if (g.sc.storms.length && g.m) chips.push(`<span class="chip ${g.m.seaMin<4?'bad':''}">Sea dike ${fmtM1(g.m.seaMin)} m</span>`);
   chips.push(`<span class="chip">Wind ${g.wind>=0.97?'storm':Math.round((g.wind||0)*100)+'%'}</span>`);
   if (g.pop) chips.push(`<span class="chip ${g.pop>g.food?'bad':''}">People ${g.pop} · food for ${g.food}</span>`);
@@ -295,3 +296,20 @@ function drawGateSection(p){
   s+=secText(6, 30, sideName(left[0])+' '+fmtM(left[1]), ink)+secText(W-6, 30, sideName(right[0])+' '+fmtM(right[1]), ink, 'end')+`</svg>`;
   if (el.innerHTML!==s && !glossBusy()) el.innerHTML=s; el.classList.remove('hide');
 }
+
+/* ----- skip ahead: when only the storm date is left, jump to its warning instead of waiting ----- */
+function canSkipAhead(){
+  const g=G; if (!g||!g.m||g.won||g.lost||g.sc.sandbox||!g.sc.storms.length||g.sc.tutorial) return false;
+  const gs=goalState(), st=gs.find(x=>x.storm); if (!st||st.ok) return false;
+  if (!gs.every(x=>x.storm||x.ok)) return false;
+  if (g.m.seaMin<4 || g.m.openings>0) return false;
+  const t0=stormT0(g.sc.storms[0]); return g.tick < t0-DAY*5 && !(g.stormFlags && g.stormFlags.w0);
+}
+function skipAhead(){
+  if (!canSkipAhead()) return; const g=G, b0=g.stats.breaches; let n=0;
+  setSpeed(1); sfx('tap');
+  while (n<DAY*500 && !G.won && !G.lost && speed>0 && G.stats.breaches===b0){ tick(); n++; }
+  setSpeed(0); updateHud(); requestRender();
+  toast_days(Math.round(n/DAY));
+}
+function toast_days(d){ setInfo('Skipped '+d+' days. The clock is paused. Check the dikes before the storm.'); }
