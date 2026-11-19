@@ -34,6 +34,12 @@ function hasSave(id){ const o=lsGet('peil_save_'+id); return !!o && (o.mapV||1)=
 function starsFor(id){ return (lsGet('peil_stars')||{})[id]||0; }
 function starHtml(n){ return '★'.repeat(n)+'<i>'+'☆'.repeat(3-n)+'</i>'; }   // stars not yet earned are outlines, not just paler
 
+// Never throw away a game in progress without asking.
+function guardStart(sc){
+    if (sc.id==='random'){ const o=lsGet('peil_save_random'); if (o && o.rseed && (o.mapV||1)===MAP_V && o.tick>0 && !o.won && !o.lost) modal(`<h2>Random map</h2><p>Map #${o.rseed} is in progress.</p><button class="btn" onclick="closeModal();rollRandom()">New map</button><button class="btn pri" onclick="closeModal();startScenario('random',true)">Continue it</button>`); else rollRandom(); return; }
+    const o=lsGet('peil_save_'+sc.id);
+    if (o && (o.mapV||1)===MAP_V && o.tick>0 && !o.won && !o.lost) modal(`<h2>${sc.name}</h2><p>You have a game in progress here.</p><button class="btn" onclick="closeModal();startScenario('${sc.id}',false)">Start over</button><button class="btn pri" onclick="closeModal();startScenario('${sc.id}',true)">Continue</button>`);
+    else startScenario(sc.id,false); }
 let MENU_VIEW='home';
 // Home: Continue, New game (opens the chapter list), Random map. Chapters live on their own screen so home stays short.
 function showMenu(view){
@@ -44,11 +50,7 @@ function showMenu(view){
   $('menu').classList.toggle('levels', levels);
   const last=lsGet('peil_last');
   const card=(cls, n, title, sub, right, fn)=>{ const b=document.createElement('button'); b.className='sc'+(cls?' '+cls:''); b.innerHTML=`<div class="n">${n}</div><div class="t"><b>${title}</b><span>${sub}</span></div>${right||''}`; b.onclick=()=>{ initAudio(); fn(); }; list.appendChild(b); return b; };
-  const guard=(sc, fn)=>{   // never throw away a game in progress without asking
-    if (sc.id==='random'){ const o=lsGet('peil_save_random'); if (o && o.rseed && (o.mapV||1)===MAP_V && o.tick>0 && !o.won && !o.lost) modal(`<h2>Random map</h2><p>Map #${o.rseed} is in progress.</p><button class="btn" onclick="closeModal();rollRandom()">New map</button><button class="btn pri" onclick="closeModal();startScenario('random',true)">Continue it</button>`); else rollRandom(); return; }
-    const o=lsGet('peil_save_'+sc.id);
-    if (o && (o.mapV||1)===MAP_V && o.tick>0 && !o.won && !o.lost) modal(`<h2>${sc.name}</h2><p>You have a game in progress here.</p><button class="btn" onclick="closeModal();startScenario('${sc.id}',false)">Start over</button><button class="btn pri" onclick="closeModal();startScenario('${sc.id}',true)">Continue</button>`);
-    else startScenario(sc.id,false); };
+  const guard=guardStart;
   if (!levels){
     if (last && hasSave(last)){ const sc=SCENARIOS.find(s=>s.id===last); if (sc) card('cont', svg('play'), 'Continue', sc.id==='random'?'Random map #'+sc.rnd:sc.name, '', ()=>startScenario(last,true)); }
     const done=SCENARIOS.filter(s=>!s.tutorial&&!s.sandbox&&s.id!=='random'&&starsFor(s.id)).length, total=SCENARIOS.filter(s=>!s.tutorial&&!s.sandbox&&s.id!=='random').length;
@@ -145,6 +147,10 @@ function showReal(sc, then){
 }
 function modal(html){ $('modal').innerHTML=html; glossify($('modal'),'.intro p,.real p,.real li,.tinfo p,.goalbox'); $('modalwrap').classList.remove('hide'); document.documentElement.classList.add('modalopen'); }
 function closeModal(){ $('modalwrap').classList.add('hide'); document.documentElement.classList.remove('modalopen'); }
+
+// Modal actions: one full-width primary, then a row of quieter secondaries.
+function acts(primary, secondary){ return `<div class="acts"><button class="btn pri" onclick="${primary[1]}">${primary[0]}</button>${secondary&&secondary.length?`<div class="brow">${secondary.map(x=>`<button class="btn" onclick="${x[1]}">${x[0]}</button>`).join('')}</div>`:''}</div>`; }
+function nextChapter(){ const list=SCENARIOS.filter(x=>x.id!=='random'), i=list.findIndex(x=>x.id===G.sc.id), nx=list[i+1]; closeModal(); if (G.sc.id==='random') rollRandom(); else if (nx && !nx.sandbox) guardStart(nx); else showMenu('levels'); }
 function showWin(){
   const g=G, days=Math.floor(g.tick/DAY); let n=1; const why=['★ Goals reached'];
   if (days<=g.sc.par){ n++; why.push('★ Within par ('+days+' of '+g.sc.par+' days)'); } else why.push('☆ Par is '+g.sc.par+' days (you took '+days+')');
@@ -153,18 +159,18 @@ function showWin(){
   if (g.sc.epilogue) g.log.push({t:g.tick, text:g.sc.epilogue, from:g.sc.sign, serif:true});
   save(); sfx('win'); haptic('heavy');
   modal(`<h2>Drooggelegd</h2>${g.sc.tutorial?'':`<div class="stars">${starHtml(n)}</div>`}<p>${g.sc.name} · ${fmtDate(dateAt(g,g.tick))}</p>${g.sc.epilogue?`<p class="serif" style="color:var(--ink);font-size:15px;line-height:1.45">${g.sc.epilogue}<br><span style="color:var(--muted);font-style:italic;font-size:12px">${g.sc.sign}</span></p>`:''}${g.sc.tutorial?'':`<div class="why">${why.join('<br>')}</div>`}
-    <button class="btn" onclick="closeModal()">Keep building</button>${STORY[g.sc.id]?'<button class="btn" onclick="showReal(G.sc,1)">In real life</button>':''}<button class="btn pri" onclick="closeModal();showMenu()">Next</button>`);
+    ${acts([g.sc.id==='random'?'New random map':'Next chapter','nextChapter()'], [['Keep building','closeModal()'], ...(STORY[g.sc.id]?[['In real life','showReal(G.sc,1)']]:[])])}`);
 }
 function showLose(){
   save(); sfx('lose');
   modal(`<h2>The sea won</h2><p>Too many houses were lost. Raise the sea dike sooner and keep the pumps on power.</p>
-    <button class="btn" onclick="closeModal()">Look around</button><button class="btn pri" onclick="closeModal();replay()">Try again</button>`);
+    ${acts([G.sc.id==='random'?'New map':'Try again','closeModal();replay()'], [['Look around','closeModal()'],['Menu','closeModal();showMenu()']])}`);
 }
 
 function showLate(){
   save(); sfx('lose');
   modal(`<h2>Out of time</h2><p>The board's patience has run out. A second pump and deeper canals drain faster; count the days before you spend.</p>
-    <button class="btn" onclick="closeModal()">Look around</button><button class="btn pri" onclick="closeModal();replay()">Try again</button>`);
+    ${acts([G.sc.id==='random'?'New map':'Try again','closeModal();replay()'], [['Look around','closeModal()'],['Menu','closeModal();showMenu()']])}`);
 }
 
 // Random map: deal a validated map number, never the one just played, and start it.
